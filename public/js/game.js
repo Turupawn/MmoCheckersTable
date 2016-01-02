@@ -6,6 +6,7 @@ function preload () {
   game.load.image('earth', 'assets/light_sand.png')
   game.load.spritesheet('dude', 'assets/dude.png', 64, 64)
   game.load.spritesheet('enemy', 'assets/dude.png', 64, 64)
+  game.load.image('shared_object', 'assets/shared_object.png')
 }
 
 var socket // Socket connection
@@ -19,11 +20,13 @@ var enemies
 var currentSpeed = 0
 var cursors
 
+var shared_object
+
 function create () {
   socket = io.connect()
 
   // Resize our game world to be a 2000 x 2000 square
-  game.world.setBounds(-500, -500, 1000, 1000)
+  game.world.setBounds(-400, -300, 800, 600)
 
   // Our tiled scrolling background
   land = game.add.tileSprite(0, 0, 800, 600, 'earth')
@@ -32,10 +35,17 @@ function create () {
   // The base of our player
   var startX = Math.round(Math.random() * (1000) - 500)
   var startY = Math.round(Math.random() * (1000) - 500)
-  player = game.add.sprite(startX, startY, 'dude')
+  player = game.add.sprite(0, 0, 'dude')
   player.anchor.setTo(0.5, 0.5)
   player.animations.add('move', [0, 1, 2, 3, 4, 5, 6, 7], 20, true)
   player.animations.add('stop', [3], 20, true)
+
+  //shared_object = game.add.sprite(100, 100, 'shared_object')
+  shared_object = new ClientSharedObject(game,100,100)
+
+  onMoveSharedObject({x:100,y:0})
+
+  //game.add.sprite(100,100, 'shared_object')
 
   // This will force it to decelerate and limit its speed
   // player.body.drag.setTo(200, 200)
@@ -70,8 +80,17 @@ var setEventHandlers = function () {
   // Player move message received
   socket.on('move player', onMovePlayer)
 
+  socket.on('move object', onMoveSharedObject)
+
   // Player removed message received
   socket.on('remove player', onRemovePlayer)
+
+  socket.on('test', onTest)
+}
+
+// Socket connected
+function onTest (data) {
+  console.log('Client received message')
 }
 
 // Socket connected
@@ -96,7 +115,16 @@ function onNewPlayer (data) {
 }
 
 // Move player
+function onMoveSharedObject (data) {
+  // Update player position
+  console.log('Client received message: move object')
+  shared_object.my_sprite.x = data.x
+  shared_object.my_sprite.y = data.y
+}
+
+// Move player
 function onMovePlayer (data) {
+
   var movePlayer = playerById(data.id)
 
   // Player not found
@@ -133,6 +161,7 @@ function update () {
       game.physics.collide(player, enemies[i].player)
     }
   }
+  shared_object.update()
 
   if (cursors.left.isDown) {
     player.angle -= 4
@@ -142,7 +171,9 @@ function update () {
 
   if (cursors.up.isDown) {
     // The speed we'll travel at
-    currentSpeed = 300
+    //currentSpeed = 300
+    //socket.emit('move object', { x: player.x, y: player.y })
+    //console.log('Client sent message: move object')
   } else {
     if (currentSpeed > 0) {
       currentSpeed -= 4
@@ -167,7 +198,6 @@ function update () {
       player.rotation = game.physics.angleToPointer(player)
     }
   }
-
   socket.emit('move player', { x: player.x, y: player.y })
 }
 
