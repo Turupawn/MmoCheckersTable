@@ -7,6 +7,9 @@ function preload () {
   game.load.spritesheet('dude', 'assets/dude.png', 64, 64)
   game.load.spritesheet('enemy', 'assets/dude.png', 64, 64)
   game.load.image('shared_object', 'assets/shared_object.png')
+  game.load.image('blue_piece', 'assets/blue_piece.png')
+  game.load.image('red_piece', 'assets/red_piece.png')
+  game.load.image('board', 'assets/board.png')
 }
 
 var socket // Socket connection
@@ -20,7 +23,7 @@ var enemies
 var currentSpeed = 0
 var cursors
 
-var shared_object
+var shared_objects=[]
 
 function create () {
   socket = io.connect()
@@ -40,22 +43,27 @@ function create () {
   player.animations.add('move', [0, 1, 2, 3, 4, 5, 6, 7], 20, true)
   player.animations.add('stop', [3], 20, true)
 
-  //shared_object = game.add.sprite(100, 100, 'shared_object')
-  shared_object = new ClientSharedObject(game,100,100)
 
   onMoveSharedObject({x:100,y:0})
-
-  //game.add.sprite(100,100, 'shared_object')
 
   // This will force it to decelerate and limit its speed
   // player.body.drag.setTo(200, 200)
   player.body.maxVelocity.setTo(400, 400)
   player.body.collideWorldBounds = true
 
+  board = game.add.sprite(-400, -300, 'board')
+
   // Create some baddies to waste :)
   enemies = []
 
-  player.bringToTop()
+  shared_objects = []
+  for(var i=0;i<12;i++)
+    shared_objects.push(new ClientSharedObject(i,game,0,0,'blue_piece'))
+
+  for(var i=12;i<24;i++)
+      shared_objects.push(new ClientSharedObject(i,game,0,0,'red_piece'))
+
+  //player.bringToTop()
 
   game.camera.follow(player)
   game.camera.deadzone = new Phaser.Rectangle(150, 150, 500, 300)
@@ -97,6 +105,8 @@ function onTest (data) {
 function onSocketConnected () {
   console.log('Connected to socket server')
 
+  console.log("fdsaaaa")
+
   // Send local player data to the game server
   socket.emit('new player', { x: player.x, y: player.y })
 }
@@ -111,15 +121,21 @@ function onNewPlayer (data) {
   console.log('New player connected:', data.id)
 
   // Add new player to the remote players array
-  enemies.push(new RemotePlayer(data.id, game, player, data.x, data.y))
+  //enemies.push(new RemotePlayer(data.id, game, player, data.x, data.y))
 }
 
 // Move player
 function onMoveSharedObject (data) {
   // Update player position
   console.log('Client received message: move object')
-  shared_object.my_sprite.x = data.x
-  shared_object.my_sprite.y = data.y
+  for (var i = 0; i < shared_objects.length; i++) {
+    if(shared_objects[i].index == data.index)
+    {
+      shared_objects[i].my_sprite.x = data.x
+      shared_objects[i].my_sprite.y = data.y
+    }
+  }
+
 }
 
 // Move player
@@ -161,7 +177,7 @@ function update () {
       game.physics.collide(player, enemies[i].player)
     }
   }
-  shared_object.update()
+  //shared_object.update()
 
   if (cursors.left.isDown) {
     player.angle -= 4
