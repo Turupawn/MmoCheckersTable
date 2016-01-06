@@ -54,15 +54,18 @@ function onDragStop(sprite, pointer) {
   if(new_position_y>250)
     new_position_y=250
 
+  var crown = false
+
   if(this.drag_start_x == new_position_x && this.drag_start_y == new_position_y)
   {
     toggleAnimation(this)
+    crown = true
   }
 
   this.my_sprite.x = new_position_x
   this.my_sprite.y = new_position_y
 
-  socket.emit('move object', { index: this.index, x: new_position_x, y: new_position_y })
+  socket.emit('move object', { index: this.index, x: new_position_x, y: new_position_y, crown: crown })
   console.log('Client sent message: move object')
 
 }

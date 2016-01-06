@@ -90,6 +90,8 @@ var setEventHandlers = function () {
 
   socket.on('move object', onMoveSharedObject)
 
+  socket.on('crown', onCrown)
+
   // Player removed message received
   socket.on('remove player', onRemovePlayer)
 
@@ -133,6 +135,21 @@ function onMoveSharedObject (data) {
     {
       shared_objects[i].my_sprite.x = data.x
       shared_objects[i].my_sprite.y = data.y
+    }
+  }
+
+}
+
+function onCrown (data) {
+  // Update player position
+  console.log('Client received message: crown')
+  for (var i = 0; i < shared_objects.length; i++) {
+    if(shared_objects[i].index == data.index)
+    {
+      if(data.crowned)
+        shared_objects[i].my_sprite.play('queen')
+      else
+        shared_objects[i].my_sprite.play('normal')
     }
   }
 
