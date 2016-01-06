@@ -1,14 +1,14 @@
 /* global Phaser RemotePlayer io */
 
-var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update, render: render })
+var game = new Phaser.Game(800, 600, Phaser.AUTO, 'gameHolder', { preload: preload, create: create, update: update, render: render })
 
 function preload () {
   game.load.image('earth', 'assets/light_sand.png')
   game.load.spritesheet('dude', 'assets/dude.png', 64, 64)
   game.load.spritesheet('enemy', 'assets/dude.png', 64, 64)
   game.load.image('shared_object', 'assets/shared_object.png')
-  game.load.image('blue_piece', 'assets/blue_piece.png')
-  game.load.image('red_piece', 'assets/red_piece.png')
+  game.load.spritesheet('blue_piece', 'assets/blue_piece.png',50,50)
+  game.load.spritesheet('red_piece', 'assets/red_piece.png',50,50)
   game.load.image('board', 'assets/board.png')
 }
 
